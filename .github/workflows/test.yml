@@ -1,0 +1,26 @@
+name: sprawdzenie
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Starting compose
+      run: docker-compose up &
+      
+    - name: Waiting for live probe
+      run: while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:3000/live/)" != "200" ]]; do sleep 5 && echo "waiting for live probe '$(date +"%T")'"; done
+      
+    - name: Waiting for ready probe
+      run: while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:3000/ready/)" != "200" ]]; do sleep 5 && echo "waiting for ready probe '$(date +"%T")'"; done
+
+    - name: GET /tasks
+      run: curl localhost:3000/tasks
+      
+    - name: POST /tasks
+      run: curl localhost:3000/tasks #do przygotowania
